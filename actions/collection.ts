@@ -20,6 +20,24 @@ export async function createCollection(form: createCollectionSchemaType) {
   })
 }
 
+export async function updateCollection(id: number, form: createCollectionSchemaType) {
+  const user = await currentUser()
+
+  if (!user) {
+    throw new Error("You must be signed in to create a collection")
+  }
+
+  return await prisma.collection.update({
+    where: {
+      id: id
+    },
+    data: {
+      color: form.color,
+      name: form.name,
+    }
+  })
+}
+
 export async function deleteCollection(id: number) {
   const user = await currentUser()
 

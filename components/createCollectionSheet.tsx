@@ -33,26 +33,33 @@ import { CollectionColor, CollectionColors } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
-import { createCollection } from "@/actions/collection";
+import { createCollection, updateCollection } from "@/actions/collection";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { toast } from "./ui/use-toast";
 import { useRouter } from "next/navigation";
+import { Collection } from "@prisma/client";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  actualData?: Collection;
 }
 
-export const CreateCollectionSheet = ({ open, onOpenChange }: Props) => {
+export const CreateCollectionSheet = ({
+  open,
+  onOpenChange,
+  actualData,
+}: Props) => {
+
   const form = useForm<createCollectionSchemaType>({
     resolver: zodResolver(createCollectionSchema),
     defaultValues: {
-      name: "",
-      color: "",
+      name: actualData ? actualData.name : "",
+      color: actualData ? actualData.color : "",
     },
   });
 
-  const router = useRouter()
+  const router = useRouter();
 
   const openChangeWrapper = (open: boolean) => {
     form.reset();
@@ -61,19 +68,26 @@ export const CreateCollectionSheet = ({ open, onOpenChange }: Props) => {
 
   const onSubmit = async (data: createCollectionSchemaType) => {
     try {
-      await createCollection(data);
+      if (actualData) {
+        await updateCollection(actualData!.id, data);
+      } else {
+        await createCollection(data);
+      }
+
       openChangeWrapper(false);
-      router.refresh()
+      router.refresh();
       toast({
         title: "Success",
-        description: "Collection created successfully",
-      })
+        description: `Collection ${
+          actualData ? "updated" : "created"
+        } successfully`,
+      });
     } catch (error: any) {
       toast({
         title: "Error",
         description: "something went wrong, please try again later",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     }
   };
 
@@ -114,7 +128,10 @@ export const CreateCollectionSheet = ({ open, onOpenChange }: Props) => {
                 <FormItem>
                   <FormLabel>Color</FormLabel>
                   <FormControl>
-                    <Select onValueChange={(color) => field.onChange(color)}>
+                    <Select
+                      onValueChange={(color) => field.onChange(color)}
+                      defaultValue={actualData ? actualData.color : ""}
+                    >
                       <SelectTrigger
                         className={cn(
                           "w-full h-8 text-white",

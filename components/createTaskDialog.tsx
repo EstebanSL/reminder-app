@@ -1,6 +1,6 @@
 "use client";
 
-import { Collection } from "@prisma/client";
+import { Collection, Task } from "@prisma/client";
 import React from "react";
 import {
   Dialog,
@@ -33,7 +33,7 @@ import { Calendar } from "./ui/calendar";
 import { CalendarIcon, ReloadIcon } from "@radix-ui/react-icons";
 import { Button } from "./ui/button";
 import { formatDate } from "date-fns";
-import { createTask } from "@/actions/task";
+import { createTask, updateTask } from "@/actions/task";
 import { toast } from "./ui/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -41,13 +41,16 @@ interface Props {
   open: boolean;
   collection: Collection;
   setOpen: (open: boolean) => void;
+  actualData?: Task;
 }
 
-export const CreateTaskDialog = ({ open, setOpen, collection }: Props) => {
+export const CreateTaskDialog = ({ open, setOpen, collection, actualData }: Props) => {
   const router = useRouter();
 
   const form = useForm<createTaskSchemaType>({
     defaultValues: {
+      content: actualData?.content || "",
+      expiresAt: actualData?.expiresAt || undefined,
       collectionId: collection.id,
     },
     resolver: zodResolver(createTaskSchema),
@@ -60,7 +63,15 @@ export const CreateTaskDialog = ({ open, setOpen, collection }: Props) => {
 
   const onSubmit = async (data: createTaskSchemaType) => {
     try {
-      await createTask(data);
+      if (actualData) {
+        await updateTask(actualData.id, {
+          ...actualData,
+          content: data.content,
+          expiresAt: data.expiresAt || null,
+        });
+      } else {
+        await createTask(data);
+      }
       toast({
         title: "Success",
         description: "Task created successfully",
@@ -81,7 +92,7 @@ export const CreateTaskDialog = ({ open, setOpen, collection }: Props) => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            Add task to collection:{" "}
+            {actualData ? "Edit task from" : "Add task to"}  collection:{" "}
             <span
               className={cn(
                 "p-[1px] bg-clip-text text-transparent",
@@ -92,8 +103,9 @@ export const CreateTaskDialog = ({ open, setOpen, collection }: Props) => {
             </span>
           </DialogTitle>
           <DialogDescription>
-            Add a task to your collection. you can add as many task as you want
-            to a collection.
+            {
+              actualData ? "Edit a task from your collection. You can edit as many task as you want from a collection." : "Add a task to your collection. you can add as many task as you want to a collection."
+            }
           </DialogDescription>
         </DialogHeader>
         <div className="gap-4 py-4">

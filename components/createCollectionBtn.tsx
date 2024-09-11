@@ -22,7 +22,9 @@ export const CreateCollectionBtn = () => {
           Create collection +
         </span>
       </Button>
-      <CreateCollectionSheet open={isOpen} onOpenChange={handleOpenChange} />
+      {isOpen && (
+        <CreateCollectionSheet open={isOpen} onOpenChange={handleOpenChange} />
+      )}
     </div>
   );
 };

@@ -1,14 +1,18 @@
 "use client";
 
-import { Task } from "@prisma/client";
-import React, { useTransition } from "react";
+import { Task, Collection } from "@prisma/client";
+import React, { useState, useTransition } from "react";
 import { Checkbox } from "./ui/checkbox";
 import { formatDate } from "date-fns";
 import { cn } from "@/lib/utils";
 import { setTaskToDone } from "@/actions/task";
 import { useRouter } from "next/navigation";
+import { CreateTaskDialog } from "./createTaskDialog";
+import { UpdateIcon } from "./icons/editIcon";
+import { Button } from "./ui/button";
 
 interface Props {
+  collection: Collection;
   task: Task;
 }
 
@@ -20,26 +24,31 @@ function getExpirationColor(expiresAt: Date): string {
   return "text-green-500 dark:text-green-400";
 }
 
-export const TaskCard = ({ task }: Props) => {
-
+export const TaskCard = ({ task, collection }: Props) => {
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [isLoading, startTransition] = useTransition();
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div className="flex gap-2 items-start">
       <Checkbox
-      onCheckedChange={() => {
-        startTransition(async () => {
-          await setTaskToDone(task.id, !task.done)
-          router.refresh()
-        });
-      }}
+        onCheckedChange={() => {
+          startTransition(async () => {
+            await setTaskToDone(task.id, !task.done);
+            router.refresh();
+          });
+        }}
         className="w-5 h-5"
         checked={task.done}
         id={task.id.toString()}
       />
-      <label htmlFor={task.id.toString()} className={cn('text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 decoration-1 dark:decoration-white',
-      task.done && 'line-through')}>
+      <label
+        htmlFor={task.id.toString()}
+        className={cn(
+          "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 decoration-1 dark:decoration-white",
+          task.done && "line-through"
+        )}
+      >
         {task.content}
         {task.expiresAt && (
           <p
@@ -52,6 +61,17 @@ export const TaskCard = ({ task }: Props) => {
           </p>
         )}
       </label>
+      <Button className="ml-auto text-neutral-500" size="icon" variant="ghost" onClick={() => setShowCreateModal(true)}>
+        <UpdateIcon />
+      </Button>
+      {showCreateModal && (
+        <CreateTaskDialog
+          open={showCreateModal}
+          setOpen={setShowCreateModal}
+          collection={collection}
+          actualData={task}
+        />
+      )}
     </div>
   );
 };

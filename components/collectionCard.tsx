@@ -29,6 +29,8 @@ import { toast } from "./ui/use-toast";
 import { useRouter } from "next/navigation";
 import { CreateTaskDialog } from "./createTaskDialog";
 import { TaskCard } from "./taskCard";
+import { CreateCollectionSheet } from "./createCollectionSheet";
+import { UpdateIcon } from "./icons/editIcon";
 
 interface Props {
   collection: Collection & {
@@ -37,8 +39,8 @@ interface Props {
 }
 
 export const CollectionCard = ({ collection }: Props) => {
-  
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpenUpdate, setIsOpenUpdate] = useState<boolean>(false);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
 
   const router = useRouter();
@@ -49,9 +51,10 @@ export const CollectionCard = ({ collection }: Props) => {
   const totalTaks = collection.tasks.length;
   const tasksDone = useMemo(() => {
     return collection.tasks.filter((task) => task.done).length;
-  }, [collection.tasks])
+  }, [collection.tasks]);
 
-  const progress = collection.tasks.length === 0 ? 0 : (tasksDone / totalTaks) * 100;
+  const progress =
+    collection.tasks.length === 0 ? 0 : (tasksDone / totalTaks) * 100;
 
   const removeCollection = async () => {
     try {
@@ -70,13 +73,19 @@ export const CollectionCard = ({ collection }: Props) => {
     }
   };
 
+  const handleOpenUpdateChange = () => {
+    setIsOpenUpdate(!isOpenUpdate);
+  };
+
   return (
     <>
-      <CreateTaskDialog
-        open={showCreateModal}
-        setOpen={setShowCreateModal}
-        collection={collection}
-      />
+      {showCreateModal && (
+        <CreateTaskDialog
+          open={showCreateModal}
+          setOpen={setShowCreateModal}
+          collection={collection}
+        />
+      )}
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger asChild>
           <Button
@@ -93,8 +102,20 @@ export const CollectionCard = ({ collection }: Props) => {
         </CollapsibleTrigger>
         <CollapsibleContent className="flex rounded-md flex-col dark:bg-neutral-900 shadow-lg mt-2 overflow-hidden">
           {tasks.length === 0 && (
-            <Button variant="ghost" className="flex items-center justify-center gap-1 p-8 py-12 rounded-none" onClick={() => setShowCreateModal(true)}>
-              <p>There are no tasks yet:</p> <span className={cn('text-sm bg-clip-text text-transparent', CollectionColors[collection.color as CollectionColor])}>Create one</span>
+            <Button
+              variant="ghost"
+              className="flex items-center justify-center gap-1 p-8 py-12 rounded-none"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <p>There are no tasks yet:</p>{" "}
+              <span
+                className={cn(
+                  "text-sm bg-clip-text text-transparent",
+                  CollectionColors[collection.color as CollectionColor]
+                )}
+              >
+                Create one
+              </span>
             </Button>
           )}
           {tasks.length > 0 && (
@@ -102,7 +123,7 @@ export const CollectionCard = ({ collection }: Props) => {
               <Progress className="rounded-none" value={progress} />
               <div className="p-4 gap-3 flex flex-col">
                 {tasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard key={task.id} task={task} collection={collection} />
                 ))}
               </div>
             </>
@@ -120,6 +141,20 @@ export const CollectionCard = ({ collection }: Props) => {
                 >
                   <AddIcon />
                 </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setIsOpenUpdate(true)}
+                >
+                  <UpdateIcon />
+                </Button>
+                {isOpenUpdate && (
+                  <CreateCollectionSheet
+                    open={isOpenUpdate}
+                    onOpenChange={handleOpenUpdateChange}
+                    actualData={collection}
+                  />
+                )}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size="icon" variant="ghost">
