@@ -20,7 +20,7 @@ export async function createCollection(form: createCollectionSchemaType) {
   })
 }
 
-export async function updateCollection(id: number, form: createCollectionSchemaType) {
+export async function updateCollection(id: string, form: createCollectionSchemaType) {
   const user = await currentUser()
 
   if (!user) {
@@ -38,7 +38,7 @@ export async function updateCollection(id: number, form: createCollectionSchemaT
   })
 }
 
-export async function deleteCollection(id: number) {
+export async function deleteCollection(id: string) {
   const user = await currentUser()
 
   if (!user) {

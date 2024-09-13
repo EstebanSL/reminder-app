@@ -27,7 +27,7 @@ export async function createTask(data: createTaskSchemaType) {
   });
 }
 
-export async function updateTask(id: number, data: Task) {
+export async function updateTask(id: string, data: Task) {
   const user = await currentUser();
   if (!user) {
     throw new Error("You must be signed in to update a task");
@@ -42,7 +42,7 @@ export async function updateTask(id: number, data: Task) {
   });
 }
 
-export async function setTaskToDone(id: number, newValue: boolean) {
+export async function setTaskToDone(id: string, newValue: boolean) {
   const user = await currentUser();
   if (!user) {
     throw new Error("You must be signed in to update a task");

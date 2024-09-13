@@ -1,21 +1,21 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+datasource db {
+  provider = "mongodb"
+  url = env("DATABASE_URL")
+}
+
 generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
-
 model Collection {
-  id        Int     @id @default(autoincrement())
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   userId    String
   color     String
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   tasks Task[]
 
@@ -23,13 +23,13 @@ model Collection {
 }
 
 model Task {
-  id Int @id @default(autoincrement())
-  content String
-  userId String
-  done Boolean @default(false)
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  userId    String
+  done      Boolean   @default(false)
   expiresAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
-  collectionId Int
-  Collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String        @db.ObjectId
+  Collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
 }
